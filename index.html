@@ -1,486 +1,71 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gmail Store - Verified Gmail Account Selling</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background-color: #f4f7f6;
-            color: #333;
-            line-height: 1.6;
-        }
-        header {
-            background: #1a73e8;
-            color: #fff;
-            padding: 20px 50px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        header h1 {
-            font-size: 24px;
-        }
-        nav {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        /* Admin Toggle Button in Header */
-        .admin-toggle-btn {
-            background: #ffbb00;
-            color: #333;
-            border: none;
-            padding: 8px 16px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .admin-toggle-btn:hover {
-            background: #e0a800;
-        }
-        
-        /* Animated Hero Section Background */
-        .hero {
-            background: linear-gradient(-45deg, #1a73e8, #4285f4, #0052cc, #003399);
-            background-size: 400% 400%;
-            animation: gradientBG 10s ease infinite;
-            color: #fff;
-            text-align: center;
-            padding: 100px 20px;
-        }
+import os
+import telebot
+import google.generativeai as genai
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+# রেন্ডার বা রেলওয়ের এনভায়রনমেন্ট ভেরিয়েবল থেকে টোকেন ও এআই কি রিড করা
+TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+ADMIN_ID = 8357226129
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-        .hero h2 {
-            font-size: 38px;
-            margin-bottom: 20px;
-        }
-        .hero p {
-            font-size: 18px;
-            margin-bottom: 30px;
-        }
-        .btn {
-            background: #ffbb00;
-            color: #333;
-            padding: 12px 30px;
-            text-decoration: none;
-            font-weight: bold;
-            border-radius: 5px;
-            transition: 0.3s;
-            display: inline-block;
-        }
-        .btn:hover {
-            background: #e0a800;
-        }
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-        /* Container */
-        .container {
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .section-title {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 28px;
-            color: #1a73e8;
-        }
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-        .card {
-            background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.3s;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .card h3 {
-            font-size: 22px;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        .price {
-            font-size: 28px;
-            color: #1a73e8;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        .card ul {
-            list-style: none;
-            margin-bottom: 25px;
-            text-align: left;
-            padding-left: 20px;
-        }
-        .card ul li {
-            margin-bottom: 10px;
-            color: #555;
-        }
-        .buy-btn {
-            display: block;
-            background: #1a73e8;
-            color: #fff;
-            padding: 10px;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            font-size: 16px;
-            text-align: center;
-            width: 100%;
-        }
-        .buy-btn:hover {
-            background: #1557b0;
-        }
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "আসসালামু আলাইকুম! জিমেইল বাই-সেল শপে আপনাকে স্বাগতম।")
 
-        /* Order Form */
-        .order-section {
-            background: #fff;
-            padding: 40px 20px;
-            margin-top: 40px;
-            border-top: 3px solid #1a73e8;
-        }
-        .order-form {
-            max-width: 600px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-        }
-        .order-form input, .order-form select, .order-form textarea {
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        .order-form button {
-            background: #1a73e8;
-            color: #fff;
-            border: none;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .order-form button:hover {
-            background: #1557b0;
-        }
+# কাস্টমারের মেসেজ হ্যান্ডেল করা এবং অ্যাডমিনকে নোটিফিকেশন পাঠানো
+@bot.message_handler(func=lambda message: message.from_user.id != ADMIN_ID)
+def handle_customer(message):
+    user_id = message.chat.id
+    username = message.from_user.first_name or "User"
+    text = message.text
 
-        /* Hidden Admin Panel (Modal/Toggle Style) */
-        .admin-panel {
-            display: none; /* ডিফল্টভাবে লুকিয়ে থাকবে */
-            background: #202124;
-            color: #fff;
-            padding: 50px 20px;
-            margin-top: 0;
-            border-top: 4px solid #ffbb00;
-        }
-        .admin-container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-        .admin-title {
-            color: #ffbb00;
-            margin-bottom: 25px;
-            font-size: 26px;
-            border-bottom: 2px solid #444;
-            padding-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .close-admin {
-            background: #ff4444;
-            color: #fff;
-            border: none;
-            padding: 5px 12px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .stats-box {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: #303134;
-            padding: 20px;
-            border-radius: 6px;
-            flex: 1;
-            text-align: center;
-        }
-        .stat-card h4 {
-            font-size: 16px;
-            color: #aaa;
-            margin-bottom: 5px;
-        }
-        .stat-card span {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1a73e8;
-        }
-        .order-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #303134;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        .order-table th, .order-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #444;
-        }
-        .order-table th {
-            background: #3c4043;
-            color: #fff;
-        }
-        .order-table td {
-            color: #ddd;
-        }
+    # অ্যাডমিন ইনবক্সে কাস্টমারের মেসেজ পাঠানোর কোড
+    try:
+        notification = (
+            f"📥 **নতুন কাস্টমার মেসেজ!**\n\n"
+            f"👤 নাম: {username}\n"
+            f"🆔 ইউজার আইডি: `{user_id}`\n"
+            f"💬 মেসেজ: {text}"
+        )
+        bot.send_message(ADMIN_ID, notification, parse_mode="Markdown")
+    except Exception as e:
+        print(f"Notification Error: {e}")
 
-        /* Footer */
-        footer {
-            background: #111;
-            color: #aaa;
-            text-align: center;
-            padding: 20px;
-        }
-    </style>
-</head>
-<body>
+    # জেমিনি এআই প্রম্পট ও অটো-রিপ্লাই জেনারেট করা
+    prompt = f"""
+    You are a professional and smart AI customer support assistant for a Gmail buying/selling shop.
+    You must reply in the exact language the user writes in (Bangla or English).
+    Be polite, concise, and helpful. Answer the customer's query based on general Gmail shop services.
+    Customer Message: {text}
+    """
+    
+    try:
+        response = model.generate_content(prompt)
+        reply_text = response.text
+        bot.reply_to(message, reply_text)
+    except Exception as e:
+        bot.reply_to(message, "দুঃখিত, এই মুহূর্তে উত্তর দিতে সমস্যা হচ্ছে। একটু পরে আবার চেষ্টা করুন।")
+        print(f"Gemini Error: {e}")
 
-    <!-- Header -->
-    <header>
-        <h1>GmailStore BD</h1>
-        <nav>
-            <a href="#">Home</a>
-            <a href="#packages">Packages</a>
-            <a href="#order">Order Now</a>
-            <!-- অ্যাডমিন প্যানেল ওপেন করার বাটন -->
-            <button class="admin-toggle-btn" onclick="toggleAdminPanel()">Admin Panel</button>
-        </nav>
-    </header>
+# অ্যাডমিনের রিপ্লাই হ্যান্ডেল করার কোড
+@bot.message_handler(func=lambda message: message.from_user.id == ADMIN_ID and message.reply_to_message is not None)
+def handle_admin_reply(message):
+    try:
+        replied_msg = message.reply_to_message.text
+        # নোটিফিকেশন থেকে ইউজারের আইডি বের করা
+        if "🆔 ইউজার আইডি:" in replied_msg:
+            lines = replied_msg.split("\n")
+            for line in lines:
+                if "🆔 ইউজার আইডি:" in line:
+                    target_user_id = int(line.split("`")[1])
+                    bot.send_message(target_user_id, f"অ্যাডমিনের উত্তর:\n{message.text}")
+                    bot.reply_to(message, "✅ কাস্টমারের কাছে মেসেজ সফলভাবে পাঠানো হয়েছে!")
+                    return
+    except Exception as e:
+        bot.reply_to(message, f"❌ রিপ্লাই পাঠাতে সমস্যা হয়েছে: {e}")
 
-    <!-- Hero Section with Animation -->
-    <section class="hero">
-        <h2>Buy Trusted & Verified Gmail Accounts</h2>
-        <p>We provide fresh, phone-verified, and high-quality Gmail accounts at affordable prices.</p>
-        <a href="#packages" class="btn" onclick="playClickSound()">View Packages</a>
-    </section>
-
-    <!-- Packages Section -->
-    <div class="container" id="packages">
-        <h2 class="section-title">Our Gmail Packages</h2>
-        <div class="pricing-grid">
-            <div class="card">
-                <h3>Fresh Gmail</h3>
-                <div class="price">৳ 20 / Piece</div>
-                <ul>
-                    <li>✔ Recovery mail included</li>
-                    <li>✔ Instant delivery</li>
-                    <li>✔ Suitable for any purpose</li>
-                </ul>
-                <button class="buy-btn" onclick="playClickSound(); scrollToOrder('Fresh Gmail')">Order Now</button>
-            </div>
-            <div class="card" style="border-top: 4px solid #ffbb00;">
-                <h3>Phone Verified (PVA)</h3>
-                <div class="price">৳ 45 / Piece</div>
-                <ul>
-                    <li>✔ Recovery mail included</li>
-                    <li>✔ Real number verified</li>
-                    <li>✔ 100% stable account</li>
-                </ul>
-                <button class="buy-btn" onclick="playClickSound(); scrollToOrder('Phone Verified Gmail')">Order Now</button>
-            </div>
-            <div class="card">
-                <h3>Old Gmail</h3>
-                <div class="price">৳ 80 / Piece</div>
-                <ul>
-                    <li>✔ 1-2 years old account</li>
-                    <li>✔ Best for Gmail marketing</li>
-                    <li>✔ High trust score</li>
-                </ul>
-                <button class="buy-btn" onclick="playClickSound(); scrollToOrder('Old Gmail')">Order Now</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Order Form Section -->
-    <div class="order-section" id="order">
-        <h2 class="section-title">Order Form</h2>
-        <form class="order-form" id="customerOrderForm">
-            <input type="text" id="custName" placeholder="Enter your name" required>
-            <input type="text" id="custContact" placeholder="Enter your email or contact info" required>
-            <select id="custPackage" required>
-                <option value="">Select Package</option>
-                <option value="Fresh Gmail">Fresh Gmail (৳ 20)</option>
-                <option value="Phone Verified Gmail">Phone Verified Gmail (৳ 45)</option>
-                <option value="Old Gmail">Old Gmail (৳ 80)</option>
-            </select>
-            <input type="number" id="custQty" placeholder="How many accounts do you need?" required>
-            <textarea id="custMsg" rows="3" placeholder="Write any special requirements if you have..."></textarea>
-            <button type="submit" onclick="playClickSound()">Submit Order</button>
-        </form>
-    </div>
-
-    <!-- Hidden Admin Panel Section -->
-    <div class="admin-panel" id="adminPanel">
-        <div class="admin-container">
-            <h2 class="admin-title">
-                🔒 Admin Dashboard (Order Management)
-                <button class="close-admin" onclick="toggleAdminPanel()">Close [X]</button>
-            </h2>
-            
-            <div class="stats-box">
-                <div class="stat-card">
-                    <h4>Total Orders</h4>
-                    <span id="totalOrders">0</span>
-                </div>
-            </div>
-
-            <table class="order-table">
-                <thead>
-                    <tr>
-                        <th>Customer Name</th>
-                        <th>Contact</th>
-                        <th>Package</th>
-                        <th>Quantity</th>
-                        <th>Message</th>
-                    </tr>
-                </thead>
-                <tbody id="orderTableBody">
-                    <tr>
-                        <td colspan="5" style="text-align: center; color: #888;">No new orders yet.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2026 GmailStore BD. All rights reserved.</p>
-    </footer>
-
-    <!-- JavaScript Code -->
-    <script>
-        // সাউন্ড ইফেক্ট ফাংশন
-        function playClickSound() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1);
-
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.1);
-            } catch (e) {
-                console.log("Audio not supported");
-            }
-        }
-
-        // অ্যাডমিন প্যানেল শো/হাইডের জন্য টগল ফাংশন
-        function toggleAdminPanel() {
-            playClickSound();
-            const panel = document.getElementById('adminPanel');
-            if (panel.style.display === 'block') {
-                panel.style.display = 'none';
-            } else {
-                panel.style.display = 'block';
-                panel.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-
-        // প্যাকেজ সিলেক্ট করে স্ক্রল করা
-        function scrollToOrder(packageName) {
-            document.getElementById('custPackage').value = packageName;
-            document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        const orderForm = document.getElementById('customerOrderForm');
-        const orderTableBody = document.getElementById('orderTableBody');
-        const totalOrdersCount = document.getElementById('totalOrders');
-
-        let orders = [];
-
-        orderForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const name = document.getElementById('custName').value;
-            const contact = document.getElementById('custContact').value;
-            const pkg = document.getElementById('custPackage').value;
-            const qty = document.getElementById('custQty').value;
-            const msg = document.getElementById('custMsg').value || 'None';
-
-            const newOrder = { name, contact, pkg, qty, msg };
-            orders.push(newOrder);
-
-            updateAdminDashboard();
-
-            orderForm.reset();
-            alert('Your order has been submitted successfully! Check the admin panel.');
-        });
-
-        function updateAdminDashboard() {
-            totalOrdersCount.innerText = orders.length;
-
-            if (orders.length === 0) {
-                orderTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #888;">No new orders yet.</td></tr>`;
-                return;
-            }
-
-            let tableContent = '';
-            orders.forEach(order => {
-                tableContent += `
-                    <tr>
-                        <td>${order.name}</td>
-                        <td>${order.contact}</td>
-                        <td>${order.pkg}</td>
-                        <td>${order.qty} pcs</td>
-                        <td>${order.msg}</td>
-                    </tr>
-                `;
-            });
-            orderTableBody.innerHTML = tableContent;
-        }
-    </script>
-
-</body>
-</html>
+# বট রান করার জন্য ইনফিনিট পোলিং
+bot.infinity_polling()
